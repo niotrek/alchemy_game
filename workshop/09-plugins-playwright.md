@@ -1,4 +1,4 @@
-# 08 — Plugins and the Playwright Plugin
+# 09 — Plugins and the Playwright Plugin
 
 **Goal:** Extend Copilot CLI with a **Playwright plugin** so it can drive a real browser — then ask it to open the `alchemy_game` frontend, brew a potion, and screenshot the result.
 

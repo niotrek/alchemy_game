@@ -52,3 +52,11 @@ def test_extra_ingredient_is_not_a_match(seeded_session):
 def test_subset_is_not_a_match(seeded_session):
     result = combine_ingredients(["moonpetal", "sage"], seeded_session)
     assert result.matched_recipe_slug is None
+
+
+def test_fog_veil_exact_match(seeded_session):
+    result = combine_ingredients(["moonpetal", "sage", "feather"], seeded_session)
+    assert result.matched_recipe_slug == "fog_veil"
+    assert result.matched_recipe_name == "Fog Veil"
+    assert result.matched_ailment_category == "confusion"
+    assert result.quality_score == 1.0
