@@ -1,10 +1,10 @@
-.PHONY: dev backend-dev frontend-dev install test lint format type seed db-reset build clean help
+.PHONY: dev backend-dev mcp frontend-dev install test lint format type seed db-reset build clean help
 
 PYTHON := uv run
 NPM := npm --prefix frontend
 
 help:
-	@echo "Targets: dev, backend-dev, frontend-dev, install, test, lint, format, type, seed, db-reset, build, clean"
+	@echo "Targets: dev, backend-dev, mcp, frontend-dev, install, test, lint, format, type, seed, db-reset, build, clean"
 
 install:
 	$(PYTHON) python -c "print('python deps already managed by uv sync')"
@@ -19,6 +19,9 @@ dev:
 
 backend-dev:
 	$(PYTHON) uvicorn apothecaria.main:app --reload --host 127.0.0.1 --port 8000 --app-dir backend
+
+mcp:
+	$(PYTHON) python -m apothecaria.mcp.server
 
 frontend-dev:
 	$(NPM) run dev

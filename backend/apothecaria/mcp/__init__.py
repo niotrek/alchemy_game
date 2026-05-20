@@ -1,1 +1,5 @@
-"""Placeholder package — populated in Module 2 (MCP server) of the workshop."""
+"""The Apothecaria store MCP server (workshop exercise 11).
+
+``server.py`` exposes the apothecary store as MCP tools. Run it over stdio
+with ``python -m apothecaria.mcp.server``.
+"""

@@ -80,3 +80,26 @@ class StoreSeed(BaseModel):
     ingredient_slug: str = Field(min_length=1)
     price: int = Field(ge=1)
     stock: int = Field(ge=0)
+
+
+class StoreItemView(BaseModel):
+    """One purchasable item: an ingredient with its store price and stock."""
+
+    slug: str
+    name: str
+    price: int
+    stock: int
+
+
+class PurchaseResult(BaseModel):
+    """The outcome of a completed purchase from the store."""
+
+    ingredient_slug: str
+    ingredient_name: str
+    quantity: int
+    unit_price: int
+    total_cost: int
+    new_money: int
+    new_quantity_owned: int
+    remaining_stock: int
+    message: str

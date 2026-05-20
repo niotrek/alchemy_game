@@ -11,6 +11,7 @@ from apothecaria.api import customers as customers_api
 from apothecaria.api import inventory as inventory_api
 from apothecaria.api import player as player_api
 from apothecaria.api import recipes as recipes_api
+from apothecaria.api import store as store_api
 from apothecaria.api import ws as ws_api
 from apothecaria.config import settings
 from apothecaria.db.seed import seed_database
@@ -72,6 +73,7 @@ app.include_router(recipes_api.router)
 app.include_router(customers_api.router)
 app.include_router(brew_api.router)
 app.include_router(player_api.router)
+app.include_router(store_api.router)
 app.include_router(ws_api.router)
 
 

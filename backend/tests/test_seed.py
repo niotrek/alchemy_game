@@ -36,7 +36,7 @@ def test_seed_creates_player_state(db_engine):
     with Session(db_engine) as session:
         state = session.get(PlayerState, 1)
         assert state is not None
-        assert state.money == 0
+        assert state.money == 100
 
 
 def test_seed_is_idempotent_no_duplicates(db_engine):

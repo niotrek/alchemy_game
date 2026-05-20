@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     customer_arrival_seconds: int = 3
     use_agent_customers: bool = False
     use_canned_agent: bool = False
+    api_base_url: str = "http://localhost:8000"
 
 
 settings = Settings()

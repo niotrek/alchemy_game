@@ -86,9 +86,12 @@ def _seed_recipes(session: Session) -> None:
     session.flush()
 
 
+STARTING_MONEY = 100
+
+
 def _seed_player_state(session: Session) -> None:
     if session.get(PlayerState, 1) is None:
-        session.add(PlayerState(id=1, money=0, brews_count=0))
+        session.add(PlayerState(id=1, money=STARTING_MONEY, brews_count=0))
         session.flush()
 
 

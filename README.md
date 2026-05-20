@@ -135,12 +135,3 @@ files at load time and produce friendly errors for typos.
 3. Run `make seed` (upsert).
 4. Refresh the browser. A new jar appears on the shelf with that sprite; the jar body color is derived from the slug.
 
-The M1 workshop module wraps this flow in a `/new-ingredient` skill.
-
-## What's *not* here yet
-
-Phases A and B are complete (backend + frontend). Workshop modules M1–M4 are intentionally
-left for students to build during the day: the `/new-ingredient` skill (M1), the Inventory
-MCP server (M2), the plugin installs (M3), and the pydantic-ai customer agents (M4). Phase C
-adds the in-repo `WORKSHOP.md` curriculum guide. The empty `backend/apothecaria/{agents,mcp}/`
-packages mark where M2/M4 will live (their `__init__.py` files carry intent docstrings).

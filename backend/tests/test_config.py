@@ -15,3 +15,7 @@ def test_settings_overrides_from_env(monkeypatch):
     s = Settings()
     assert s.database_url == "sqlite:///:memory:"
     assert s.customer_arrival_seconds == 5
+
+
+def test_api_base_url_defaults_to_localhost():
+    assert Settings().api_base_url == "http://localhost:8000"

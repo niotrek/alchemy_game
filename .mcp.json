@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "apothecaria-store": {
+      "command": "uv",
+      "args": ["run", "python", "-m", "apothecaria.mcp.server"]
+    }
+  }
+}

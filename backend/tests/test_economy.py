@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import select
 
 from apothecaria.db.models import BrewHistory, PlayerState
-from apothecaria.db.seed import seed_database
+from apothecaria.db.seed import STARTING_MONEY, seed_database
 from apothecaria.domain.economy import apply_outcome, determine_outcome
 from apothecaria.domain.models import BrewResult, CustomerInstance, Outcome
 
@@ -88,6 +88,6 @@ def test_apply_outcome_updates_player_state(seeded_session):
         _brew("sleep_draught", "Sleep Draught", "sleep"), customer, seeded_session
     )
     state = seeded_session.get(PlayerState, 1)
-    assert state.money == 10
+    assert state.money == STARTING_MONEY + 10
     assert state.brews_count == 1
-    assert result.new_money == 10
+    assert result.new_money == STARTING_MONEY + 10
