@@ -30,14 +30,16 @@ void boot();
 
 async function boot(): Promise<void> {
   try {
-    const [inventory, recipes] = await Promise.all([
+    const [inventory, recipes, player] = await Promise.all([
       client.getInventory(),
       client.getRecipes(),
+      client.getPlayer(),
     ]);
     const shelf = createShelf(scene.shelfContainer, inventory);
     shelfJars = shelf.jars;
     grimoirePanel.setRecipes(recipes);
     brewResult.setRecipes(recipes);
+    session.setMoney(player.money);
 
     inventory.forEach((i) => {
       ingredientColors.set(i.slug, defaultLiquidColorFor(i.slug));
