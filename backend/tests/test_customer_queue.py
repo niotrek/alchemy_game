@@ -15,12 +15,13 @@ from apothecaria.domain.customer_queue import (
 from apothecaria.domain.models import CustomerInstance, CustomerTemplate
 
 
-def test_load_templates_returns_five():
+def test_load_templates_returns_six():
     templates = load_templates()
-    assert len(templates) == 5
+    assert len(templates) == 6
     assert all(isinstance(t, CustomerTemplate) for t in templates)
     slugs = {t.slug for t in templates}
     assert "weary_traveler" in slugs
+    assert "muddled_scholar" in slugs
 
 
 def test_pick_next_template_seeded_rng_is_deterministic():

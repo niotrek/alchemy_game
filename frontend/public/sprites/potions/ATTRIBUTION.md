@@ -9,3 +9,4 @@ Mapping:
 - `energy_elixir.png` ← `potions (6).png` (golden encased)
 - `calming_tonic.png` ← `potions (4).png` (green with leaves)
 - `healing_balm.png` ← `potions (5).png` (pink heart pendant)
+- `fog_veil.png` ← desaturated + tinted derivative of `potions (1).png` (same OGA-BY 3.0 license)
