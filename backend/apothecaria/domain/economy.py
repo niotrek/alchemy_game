@@ -42,7 +42,7 @@ def apply_outcome(brew: BrewResult, customer: CustomerInstance, session: Session
 
     state = session.get(PlayerState, 1)
     if state is None:
-        state = PlayerState(id=1, money=0, brews_count=0)
+        state = PlayerState(id=1, money=100, brews_count=0)
         session.add(state)
         session.flush()
     state.money += delta

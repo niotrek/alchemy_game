@@ -5,11 +5,9 @@ from sqlalchemy import select
 from apothecaria.db.models import (
     BrewHistory,
     Ingredient,
-    PlayerInventory,
     PlayerState,
     Recipe,
     RecipeIngredient,
-    StoreItem,
 )
 
 
@@ -40,12 +38,12 @@ def test_recipe_with_ingredients(db_session):
 
 
 def test_player_state_singleton(db_session):
-    state = PlayerState(id=1, money=0, brews_count=0)
+    state = PlayerState(id=1, money=100, brews_count=0)
     db_session.add(state)
     db_session.flush()
     fetched = db_session.get(PlayerState, 1)
     assert fetched is not None
-    assert fetched.money == 0
+    assert fetched.money == 100
 
 
 def test_brew_history_records_customer_snapshot(db_session):
@@ -64,30 +62,3 @@ def test_brew_history_records_customer_snapshot(db_session):
     db_session.flush()
     assert h.id is not None
     assert h.customer_name == "Weary Traveler"
-
-
-def test_player_inventory_round_trip(db_session):
-    ing = Ingredient(slug="moonpetal", name="Moonpetal")
-    db_session.add(ing)
-    db_session.flush()
-    pi = PlayerInventory(ingredient_id=ing.id, quantity=20)
-    db_session.add(pi)
-    db_session.flush()
-    fetched = db_session.get(PlayerInventory, ing.id)
-    assert fetched is not None
-    assert fetched.quantity == 20
-    assert fetched.ingredient.slug == "moonpetal"
-
-
-def test_store_item_round_trip(db_session):
-    ing = Ingredient(slug="moonpetal", name="Moonpetal")
-    db_session.add(ing)
-    db_session.flush()
-    item = StoreItem(ingredient_id=ing.id, price=5, stock=50)
-    db_session.add(item)
-    db_session.flush()
-    fetched = db_session.scalar(select(StoreItem).where(StoreItem.ingredient_id == ing.id))
-    assert fetched is not None
-    assert fetched.price == 5
-    assert fetched.stock == 50
-    assert fetched.ingredient.slug == "moonpetal"

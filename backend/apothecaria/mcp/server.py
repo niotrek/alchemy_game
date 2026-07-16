@@ -16,7 +16,7 @@ from apothecaria.config import settings
 mcp = FastMCP("apothecaria-store")
 
 _BACKEND_DOWN = (
-    "The apothecary backend isn't reachable. Start it with `make backend-dev` " "and try again."
+    "The apothecary backend isn't reachable. Start it with `make backend-dev` and try again."
 )
 
 
@@ -41,7 +41,7 @@ async def list_store() -> str:
     if not items:
         return "The store has nothing for sale."
     lines = [
-        f"- {item['slug']} ({item['name']}): ${item['price']} each, " f"{item['stock']} in stock"
+        f"- {item['slug']} ({item['name']}): ${item['price']} each, {item['stock']} in stock"
         for item in items
     ]
     return "The apothecary store sells:\n" + "\n".join(lines)

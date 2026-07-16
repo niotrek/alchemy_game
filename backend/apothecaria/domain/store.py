@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from apothecaria.db.models import Ingredient, PlayerInventory, PlayerState, StoreItem
+from apothecaria.db.models import Ingredient, IngredientStore, PlayerIngredient, PlayerState
 from apothecaria.domain.models import PurchaseResult, StoreItemView
 
 
@@ -22,17 +22,17 @@ def list_store(session: Session) -> list[StoreItemView]:
     :param session: active SQLAlchemy session.
     :return: store items ordered by ingredient name.
     """
-    items = session.scalars(
-        select(StoreItem).join(StoreItem.ingredient).order_by(Ingredient.name)
-    ).all()
+    items = session.scalars(select(IngredientStore).order_by(IngredientStore.ingredient_slug)).all()
+    ingredients = {i.slug: i for i in session.scalars(select(Ingredient)).all()}
     return [
         StoreItemView(
-            slug=item.ingredient.slug,
-            name=item.ingredient.name,
+            slug=item.ingredient_slug,
+            name=ingredients[item.ingredient_slug].name,
             price=item.price,
             stock=item.stock,
         )
         for item in items
+        if item.ingredient_slug in ingredients
     ]
 
 
@@ -56,7 +56,9 @@ def purchase(session: Session, ingredient_slug: str, quantity: int) -> PurchaseR
     if ingredient is None:
         raise UnknownIngredientError(f"No ingredient '{ingredient_slug}' exists.")
 
-    item = session.scalar(select(StoreItem).where(StoreItem.ingredient_id == ingredient.id))
+    item = session.scalar(
+        select(IngredientStore).where(IngredientStore.ingredient_slug == ingredient_slug)
+    )
     if item is None:
         raise PurchaseError(f"{ingredient.name} is not sold in the store.")
     if item.stock < quantity:
@@ -69,22 +71,24 @@ def purchase(session: Session, ingredient_slug: str, quantity: int) -> PurchaseR
 
     state = session.get(PlayerState, 1)
     if state is None:
-        state = PlayerState(id=1, money=0, brews_count=0)
+        state = PlayerState(id=1, money=100, brews_count=0)
         session.add(state)
         session.flush()
     if state.money < cost:
         raise PurchaseError(
-            f"{quantity} {ingredient.name} costs ${cost}, " f"but you only have ${state.money}."
+            f"{quantity} {ingredient.name} costs ${cost}, but you only have ${state.money}."
         )
 
-    inventory = session.get(PlayerInventory, ingredient.id)
-    if inventory is None:
-        inventory = PlayerInventory(ingredient_id=ingredient.id, quantity=0)
-        session.add(inventory)
+    pi = session.scalar(
+        select(PlayerIngredient).where(PlayerIngredient.ingredient_slug == ingredient_slug)
+    )
+    if pi is None:
+        pi = PlayerIngredient(ingredient_slug=ingredient_slug, quantity=0)
+        session.add(pi)
 
     item.stock -= quantity
     state.money -= cost
-    inventory.quantity += quantity
+    pi.quantity += quantity
     session.flush()
 
     return PurchaseResult(
@@ -94,9 +98,7 @@ def purchase(session: Session, ingredient_slug: str, quantity: int) -> PurchaseR
         unit_price=item.price,
         total_cost=cost,
         new_money=state.money,
-        new_quantity_owned=inventory.quantity,
+        new_quantity_owned=pi.quantity,
         remaining_stock=item.stock,
-        message=(
-            f"Bought {quantity} × {ingredient.name} for ${cost}. " f"Balance: ${state.money}."
-        ),
+        message=(f"Bought {quantity} × {ingredient.name} for ${cost}. Balance: ${state.money}."),
     )

@@ -1,4 +1,5 @@
 import type { Ingredient } from "../api/client";
+import { session } from "../state/session";
 
 export type Jar = {
   el: HTMLElement;
@@ -86,6 +87,14 @@ export function createShelf(container: HTMLElement, ingredients: Ingredient[]): 
     row.append(jarRow, board);
     container.appendChild(row);
   }
+
+  session.subscribe((state) => {
+    for (const jar of jars) {
+      const qty = state.ingredientQuantities[jar.ingredient.slug];
+      const label = jar.el.querySelector(".jar-label") as HTMLElement;
+      label.textContent = qty !== undefined ? String(qty) : "";
+    }
+  });
 
   return { jars };
 }

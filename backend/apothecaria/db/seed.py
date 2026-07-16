@@ -9,11 +9,11 @@ from sqlalchemy.orm import Session
 
 from apothecaria.db.models import (
     Ingredient,
-    PlayerInventory,
+    IngredientStore,
+    PlayerIngredient,
     PlayerState,
     Recipe,
     RecipeIngredient,
-    StoreItem,
 )
 from apothecaria.domain.models import IngredientSeed, RecipeSeed, StoreSeed
 
@@ -36,7 +36,7 @@ def seed_database(connection: Connection) -> None:
         _seed_ingredients(session)
         _seed_recipes(session)
         _seed_player_state(session)
-        _seed_player_inventory(session)
+        _seed_player_ingredients(session)
         _seed_store(session)
         session.commit()
 
@@ -86,48 +86,33 @@ def _seed_recipes(session: Session) -> None:
     session.flush()
 
 
-STARTING_MONEY = 100
-
-
 def _seed_player_state(session: Session) -> None:
     if session.get(PlayerState, 1) is None:
-        session.add(PlayerState(id=1, money=STARTING_MONEY, brews_count=0))
+        session.add(PlayerState(id=1, money=100, brews_count=0))
         session.flush()
 
 
-STARTING_QUANTITY = 20
-
-
-def _seed_player_inventory(session: Session) -> None:
-    """Give the player a generous starting stock of every ingredient.
-
-    Use this when seeding a fresh or reset database.
-    """
+def _seed_player_ingredients(session: Session) -> None:
+    """Give the player 20 of each ingredient. Idempotent — skips existing slugs."""
     ingredients = session.scalars(select(Ingredient)).all()
-    existing = {pi.ingredient_id for pi in session.scalars(select(PlayerInventory)).all()}
+    existing = {pi.ingredient_slug for pi in session.scalars(select(PlayerIngredient)).all()}
     for ing in ingredients:
-        if ing.id in existing:
-            continue
-        session.add(PlayerInventory(ingredient_id=ing.id, quantity=STARTING_QUANTITY))
+        if ing.slug not in existing:
+            session.add(PlayerIngredient(ingredient_slug=ing.slug, quantity=20))
     session.flush()
 
 
 def _seed_store(session: Session) -> None:
-    """Load store prices and stock from content/store.json.
-
-    Use this when seeding a fresh or reset database.
-    """
+    """Upsert ingredient store prices and stock from content/store.json."""
     rows = [StoreSeed.model_validate(r) for r in _load_json("store.json")]
-    by_slug = {i.slug: i for i in session.scalars(select(Ingredient)).all()}
-    existing = {si.ingredient_id: si for si in session.scalars(select(StoreItem)).all()}
+    existing = {s.ingredient_slug: s for s in session.scalars(select(IngredientStore)).all()}
     for row in rows:
-        ing = by_slug[row.ingredient_slug]
-        if ing.id in existing:
-            item = existing[ing.id]
-            item.price = row.price
-            item.stock = row.stock
+        if row.ingredient_slug in existing:
+            entry = existing[row.ingredient_slug]
+            entry.price = row.price
+            entry.stock = row.stock
         else:
-            session.add(StoreItem(ingredient_id=ing.id, price=row.price, stock=row.stock))
+            session.add(IngredientStore(**row.model_dump()))
     session.flush()
 
 

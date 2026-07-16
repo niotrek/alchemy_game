@@ -30,16 +30,18 @@ void boot();
 
 async function boot(): Promise<void> {
   try {
-    const [inventory, recipes, player] = await Promise.all([
+    const [inventory, recipes, quantities, playerMoney] = await Promise.all([
       client.getInventory(),
       client.getRecipes(),
-      client.getPlayer(),
+      client.getQuantities(),
+      client.getMoney(),
     ]);
     const shelf = createShelf(scene.shelfContainer, inventory);
     shelfJars = shelf.jars;
     grimoirePanel.setRecipes(recipes);
     brewResult.setRecipes(recipes);
-    session.setMoney(player.money);
+    session.setQuantities(quantities);
+    session.setMoney(playerMoney.money);
 
     inventory.forEach((i) => {
       ingredientColors.set(i.slug, defaultLiquidColorFor(i.slug));
@@ -127,37 +129,7 @@ function wireOverlays(): void {
     try {
       const r = await client.brew(slugs);
       brewResult.showBrew(r);
-      await refreshJarQuantities();
-    } catch (err) {
-      showToast(errorText(err), "error");
-    }
-  });
-
-  inventoryBar.onClear(() => {
-    session.clearCauldron();
-    cauldron.resetColor();
-  });
-
-  inventoryBar.onGrimoire(() => grimoirePanel.toggle());
-
-  customerDialog.onServe(async () => {
-    const c = session.get().currentCustomer;
-    if (!c) return;
-    const slugs = session.get().cauldronContents;
-    if (slugs.length === 0) {
-      showToast("Add ingredients before serving");
-      return;
-    }
-    try {
-      const r = await client.serve(c.id, slugs);
-      brewResult.showServe(r);
-      session.setMoney(r.new_money);
-      session.setCurrentCustomer(null);
-      session.clearCauldron();
-      cauldron.resetColor();
-      customerDialog.hide();
-      door.hideCustomer();
-      await refreshJarQuantities();
+      client.getQuantities().then((q) => session.setQuantities(q));
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         showToast("That customer has left the shop");
@@ -169,19 +141,6 @@ function wireOverlays(): void {
       }
     }
   });
-}
-
-async function refreshJarQuantities(): Promise<void> {
-  try {
-    const inventory = await client.getInventory();
-    const bySlug = new Map(inventory.map((i) => [i.slug, i.quantity]));
-    for (const jar of shelfJars) {
-      const qty = bySlug.get(jar.ingredient.slug);
-      if (qty !== undefined) jar.updateQuantity(qty);
-    }
-  } catch {
-    // silent — quantities will refresh on next action
-  }
 }
 
 function connectWs(): void {

@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from apothecaria.db.models import Ingredient, PlayerInventory, PlayerState, StoreItem
+from apothecaria.db.models import IngredientStore, PlayerIngredient, PlayerState
 from apothecaria.db.seed import seed_database
 from apothecaria.domain.store import (
     PurchaseError,
@@ -53,18 +53,24 @@ def test_purchase_charges_the_player(seeded_session):
 
 def test_purchase_adds_to_player_inventory(seeded_session):
     _set_money(seeded_session, 100)
-    moon_id = seeded_session.scalar(select(Ingredient.id).where(Ingredient.slug == "moonpetal"))
-    before = seeded_session.get(PlayerInventory, moon_id).quantity
+    pi = seeded_session.scalar(
+        select(PlayerIngredient).where(PlayerIngredient.ingredient_slug == "moonpetal")
+    )
+    before = pi.quantity
     result = purchase(seeded_session, "moonpetal", 4)
     assert result.new_quantity_owned == before + 4
-    assert seeded_session.get(PlayerInventory, moon_id).quantity == before + 4
+    seeded_session.expire_all()
+    pi = seeded_session.scalar(
+        select(PlayerIngredient).where(PlayerIngredient.ingredient_slug == "moonpetal")
+    )
+    assert pi.quantity == before + 4
 
 
 def test_purchase_reduces_store_stock(seeded_session):
     _set_money(seeded_session, 100)
     result = purchase(seeded_session, "moonpetal", 10)
     item = seeded_session.scalar(
-        select(StoreItem).join(StoreItem.ingredient).where(Ingredient.slug == "moonpetal")
+        select(IngredientStore).where(IngredientStore.ingredient_slug == "moonpetal")
     )
     assert item.stock == 40
     assert result.remaining_stock == 40

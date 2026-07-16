@@ -5,7 +5,7 @@ from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from apothecaria.db.models import Ingredient, PlayerInventory, PlayerState, Recipe, StoreItem
+from apothecaria.db.models import Ingredient, IngredientStore, PlayerIngredient, PlayerState, Recipe
 from apothecaria.db.seed import _seed_ingredients, seed_database
 
 
@@ -77,24 +77,24 @@ def test_seed_validation_rejects_bad_data(tmp_path, monkeypatch, db_engine):
         _seed_ingredients(session)
 
 
-def test_seed_creates_player_inventory(db_engine):
+def test_seed_creates_player_ingredients(db_engine):
     with db_engine.connect() as conn:
         seed_database(conn)
     with Session(db_engine) as session:
-        rows = session.scalars(select(PlayerInventory)).all()
-        assert len(rows) == 6
-        for row in rows:
-            assert row.quantity == 20
+        rows = {
+            pi.ingredient_slug: pi.quantity
+            for pi in session.scalars(select(PlayerIngredient)).all()
+        }
+    assert len(rows) == 6
+    assert all(q == 20 for q in rows.values())
 
 
-def test_seed_creates_store_items(db_engine):
+def test_seed_creates_store(db_engine):
     with db_engine.connect() as conn:
         seed_database(conn)
     with Session(db_engine) as session:
-        items = session.scalars(select(StoreItem)).all()
-        assert len(items) == 6
-        slugs_prices = {item.ingredient.slug: item.price for item in items}
-        assert slugs_prices["moonpetal"] == 5
-        assert slugs_prices["eye-of-newt"] == 8
-        for item in items:
-            assert item.stock > 0
+        store = {s.ingredient_slug: s for s in session.scalars(select(IngredientStore)).all()}
+    assert len(store) == 6
+    assert store["moonpetal"].price == 5
+    assert store["moonpetal"].stock == 50
+    assert store["eye-of-newt"].price == 8

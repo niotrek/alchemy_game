@@ -17,8 +17,8 @@ export function createInventoryBar(): InventoryBar {
     root.innerHTML = `
       <div class="card bar">
         <div class="bar-section">
-          <span class="label">Money</span>
-          <span class="money">$${s.money}</span>
+          <span class="label">$</span>
+          <span class="money">${s.money}</span>
         </div>
         <div class="bar-section flex-grow">
           <span class="label">Cauldron</span>

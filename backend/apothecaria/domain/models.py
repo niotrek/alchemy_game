@@ -13,6 +13,14 @@ class IngredientSeed(BaseModel):
     sprite: str = ""
 
 
+class StoreSeed(BaseModel):
+    """Schema for one row in content/store.json."""
+
+    ingredient_slug: str = Field(min_length=1)
+    price: int = Field(gt=0)
+    stock: int = Field(ge=0)
+
+
 class RecipeSeed(BaseModel):
     """Schema for one row in content/recipes.json."""
 
@@ -72,14 +80,6 @@ class ServiceResult(BaseModel):
     money_delta: int
     new_money: int
     customer_response: str
-
-
-class StoreSeed(BaseModel):
-    """Schema for one row in content/store.json."""
-
-    ingredient_slug: str = Field(min_length=1)
-    price: int = Field(ge=1)
-    stock: int = Field(ge=0)
 
 
 class StoreItemView(BaseModel):

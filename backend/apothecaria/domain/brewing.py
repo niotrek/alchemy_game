@@ -1,22 +1,13 @@
 from __future__ import annotations
 
-from collections import Counter
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from apothecaria.db.models import Ingredient, PlayerInventory, Recipe
+from apothecaria.db.models import Ingredient, PlayerIngredient, Recipe
 from apothecaria.domain.models import BrewResult
 
 
 def combine_ingredients(ingredient_slugs: list[str], session: Session) -> BrewResult:
-    """Match ingredient slugs against known recipes and return a brew result.
-
-    Use this when the player brews or serves a potion.
-    :param ingredient_slugs: slugs the player placed in the cauldron.
-    :param session: active SQLAlchemy session.
-    :return: brew result with match info and description.
-    """
     if not ingredient_slugs:
         return BrewResult(
             matched_recipe_slug=None,
@@ -46,33 +37,19 @@ def combine_ingredients(ingredient_slugs: list[str], session: Session) -> BrewRe
         )
 
     # Check player has enough of each ingredient
-    slug_counts = Counter(requested)
-    inventory_rows = {
-        pi.ingredient.slug: pi
-        for pi in session.scalars(
-            select(PlayerInventory).join(Ingredient).where(Ingredient.slug.in_(requested))
-        ).all()
-    }
-    insufficient = [
-        slug
-        for slug, needed in slug_counts.items()
-        if slug not in inventory_rows or inventory_rows[slug].quantity < needed
-    ]
+    insufficient = _check_quantities(requested, session)
     if insufficient:
-        names = sorted(insufficient)
         return BrewResult(
             matched_recipe_slug=None,
             matched_recipe_name=None,
             matched_ailment_category=None,
             quality_score=0.0,
             ingredient_slugs=requested,
-            description=f"Not enough ingredients: {names}. Visit the store to stock up!",
+            description=insufficient,
         )
 
-    # Decrement quantities
-    for slug, needed in slug_counts.items():
-        inventory_rows[slug].quantity -= needed
-    session.flush()
+    # Decrement ingredient quantities
+    _consume_ingredients(requested, session)
 
     for recipe in session.scalars(select(Recipe)).all():
         recipe_slugs = {link.ingredient.slug for link in recipe.ingredient_links}
@@ -94,3 +71,40 @@ def combine_ingredients(ingredient_slugs: list[str], session: Session) -> BrewRe
         ingredient_slugs=requested,
         description="The cauldron belches a foul-smelling cloud — an unknown brew.",
     )
+
+
+def _check_quantities(slugs: list[str], session: Session) -> str | None:
+    """Return an error message if any ingredient is insufficient, else None."""
+    slug_counts: dict[str, int] = {}
+    for s in slugs:
+        slug_counts[s] = slug_counts.get(s, 0) + 1
+
+    inventory = {
+        pi.ingredient_slug: pi.quantity
+        for pi in session.scalars(
+            select(PlayerIngredient).where(PlayerIngredient.ingredient_slug.in_(list(slug_counts)))
+        ).all()
+    }
+
+    missing: list[str] = []
+    for slug, needed in slug_counts.items():
+        have = inventory.get(slug, 0)
+        if have < needed:
+            missing.append(f"{slug} (have {have}, need {needed})")
+
+    if missing:
+        return f"Not enough ingredients: {', '.join(missing)}."
+    return None
+
+
+def _consume_ingredients(slugs: list[str], session: Session) -> None:
+    """Decrement player quantities for each ingredient used."""
+    slug_counts: dict[str, int] = {}
+    for s in slugs:
+        slug_counts[s] = slug_counts.get(s, 0) + 1
+
+    for pi in session.scalars(
+        select(PlayerIngredient).where(PlayerIngredient.ingredient_slug.in_(list(slug_counts)))
+    ).all():
+        pi.quantity -= slug_counts[pi.ingredient_slug]
+    session.flush()

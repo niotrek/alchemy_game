@@ -62,8 +62,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const client = {
   getInventory: () => request<Ingredient[]>("/api/inventory"),
+  getQuantities: () => request<Record<string, number>>("/api/inventory/quantities"),
+  getMoney: () => request<{ money: number }>("/api/player/money"),
   getRecipes: () => request<Recipe[]>("/api/recipes"),
-  getPlayer: () => request<{ money: number; brews_count: number }>("/api/player"),
   getNextCustomer: () => request<Customer | null>("/api/customers/next"),
   spawnCustomer: () =>
     request<Customer>("/api/customers/spawn", { method: "POST" }),
