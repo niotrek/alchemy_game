@@ -80,3 +80,26 @@ class ServiceResult(BaseModel):
     money_delta: int
     new_money: int
     customer_response: str
+
+
+class StoreItemView(BaseModel):
+    """One purchasable item: an ingredient with its store price and stock."""
+
+    slug: str
+    name: str
+    price: int
+    stock: int
+
+
+class PurchaseResult(BaseModel):
+    """The outcome of a completed purchase from the store."""
+
+    ingredient_slug: str
+    ingredient_name: str
+    quantity: int
+    unit_price: int
+    total_cost: int
+    new_money: int
+    new_quantity_owned: int
+    remaining_stock: int
+    message: str

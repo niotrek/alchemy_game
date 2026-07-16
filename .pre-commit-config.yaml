@@ -17,3 +17,4 @@ repos:
           - "pydantic-settings>=2.6"
           - "pytest>=8.3"
           - "httpx>=0.28"
+          - "mcp>=1.2"

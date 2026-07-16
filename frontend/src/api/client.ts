@@ -3,6 +3,7 @@ export type Ingredient = {
   name: string;
   lore: string;
   sprite: string;
+  quantity: number;
 };
 
 export type Recipe = {

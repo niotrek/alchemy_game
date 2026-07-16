@@ -131,36 +131,6 @@ function wireOverlays(): void {
       brewResult.showBrew(r);
       client.getQuantities().then((q) => session.setQuantities(q));
     } catch (err) {
-      showToast(errorText(err), "error");
-    }
-  });
-
-  inventoryBar.onClear(() => {
-    session.clearCauldron();
-    cauldron.resetColor();
-  });
-
-  inventoryBar.onGrimoire(() => grimoirePanel.toggle());
-
-  customerDialog.onServe(async () => {
-    const c = session.get().currentCustomer;
-    if (!c) return;
-    const slugs = session.get().cauldronContents;
-    if (slugs.length === 0) {
-      showToast("Add ingredients before serving");
-      return;
-    }
-    try {
-      const r = await client.serve(c.id, slugs);
-      brewResult.showServe(r);
-      session.setMoney(r.new_money);
-      session.setCurrentCustomer(null);
-      session.clearCauldronAfterBrew();
-      cauldron.resetColor();
-      customerDialog.hide();
-      door.hideCustomer();
-      client.getQuantities().then((q) => session.setQuantities(q));
-    } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         showToast("That customer has left the shop");
         session.setCurrentCustomer(null);
