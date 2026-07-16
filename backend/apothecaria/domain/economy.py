@@ -9,7 +9,7 @@ from apothecaria.domain.models import BrewResult, CustomerInstance, Outcome, Ser
 
 
 def determine_outcome(brew: BrewResult, customer: CustomerInstance) -> tuple[Outcome, int, str]:
-    """Pure function: outcome + reputation delta + customer response. No side effects."""
+    """Pure function: outcome + money delta + customer response. No side effects."""
     if brew.matched_recipe_slug == customer.expected_recipe_slug:
         return (
             Outcome.DELIGHTED,
@@ -42,10 +42,10 @@ def apply_outcome(brew: BrewResult, customer: CustomerInstance, session: Session
 
     state = session.get(PlayerState, 1)
     if state is None:
-        state = PlayerState(id=1, reputation=0, brews_count=0)
+        state = PlayerState(id=1, money=100, brews_count=0)
         session.add(state)
         session.flush()
-    state.reputation += delta
+    state.money += delta
     state.brews_count += 1
 
     session.add(
@@ -58,14 +58,14 @@ def apply_outcome(brew: BrewResult, customer: CustomerInstance, session: Session
             customer_ailment_category=customer.ailment_category,
             expected_recipe_slug=customer.expected_recipe_slug,
             outcome=outcome.value,
-            reputation_delta=delta,
+            money_delta=delta,
         )
     )
     session.flush()
 
     return ServiceResult(
         outcome=outcome,
-        reputation_delta=delta,
-        new_reputation=state.reputation,
+        money_delta=delta,
+        new_money=state.money,
         customer_response=response,
     )

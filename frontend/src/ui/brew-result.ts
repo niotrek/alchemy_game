@@ -46,9 +46,9 @@ export function createBrewResult(): BrewResultOverlay {
           : r.outcome === "neutral"
             ? "var(--moonlight)"
             : "#a44";
-      const sign = r.reputation_delta >= 0 ? "+" : "";
+      const sign = r.money_delta >= 0 ? "+" : "";
       showHTML(
-        `<h3>${esc(r.outcome)}</h3><p>${esc(r.customer_response)}</p><p class="meta">Reputation ${sign}${r.reputation_delta} → ${r.new_reputation}</p>`,
+        `<h3>${esc(r.outcome)}</h3><p>${esc(r.customer_response)}</p><p class="meta">$ ${sign}${r.money_delta} → $${r.new_money}</p>`,
         accent,
       );
     },

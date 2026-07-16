@@ -45,8 +45,25 @@ class PlayerState(Base):
     __tablename__ = "player_state"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    reputation: Mapped[int] = mapped_column(Integer, default=0)
+    money: Mapped[int] = mapped_column(Integer, default=100)
     brews_count: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class IngredientStore(Base):
+    __tablename__ = "ingredient_store"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    ingredient_slug: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    price: Mapped[int] = mapped_column(Integer)
+    stock: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class PlayerIngredient(Base):
+    __tablename__ = "player_ingredients"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    ingredient_slug: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    quantity: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class BrewHistory(Base):
@@ -74,4 +91,4 @@ class BrewHistory(Base):
         String(50), nullable=True, default=None
     )
     outcome: Mapped[str | None] = mapped_column(String(50), nullable=True, default=None)
-    reputation_delta: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
+    money_delta: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)

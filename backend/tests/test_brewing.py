@@ -1,5 +1,7 @@
 import pytest
+from sqlalchemy import select
 
+from apothecaria.db.models import PlayerIngredient
 from apothecaria.db.seed import seed_database
 from apothecaria.domain.brewing import combine_ingredients
 
@@ -60,3 +62,26 @@ def test_fog_veil_exact_match(seeded_session):
     assert result.matched_recipe_name == "Fog Veil"
     assert result.matched_ailment_category == "confusion"
     assert result.quality_score == 1.0
+
+
+def test_brew_decrements_ingredient_quantities(seeded_session):
+    combine_ingredients(["moonpetal", "sage", "root"], seeded_session)
+    for slug in ("moonpetal", "sage", "root"):
+        pi = seeded_session.scalars(
+            select(PlayerIngredient).where(PlayerIngredient.ingredient_slug == slug)
+        ).one()
+        assert pi.quantity == 19
+
+
+def test_brew_fails_when_ingredient_exhausted(seeded_session):
+    pi = seeded_session.scalars(
+        select(PlayerIngredient).where(PlayerIngredient.ingredient_slug == "moonpetal")
+    ).one()
+    pi.quantity = 0
+    seeded_session.flush()
+
+    result = combine_ingredients(["moonpetal", "sage", "root"], seeded_session)
+    assert result.matched_recipe_slug is None
+    assert result.quality_score == 0.0
+    assert "Not enough" in result.description
+    assert "moonpetal" in result.description

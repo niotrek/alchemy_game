@@ -9,11 +9,13 @@ from sqlalchemy.orm import Session
 
 from apothecaria.db.models import (
     Ingredient,
+    IngredientStore,
+    PlayerIngredient,
     PlayerState,
     Recipe,
     RecipeIngredient,
 )
-from apothecaria.domain.models import IngredientSeed, RecipeSeed
+from apothecaria.domain.models import IngredientSeed, RecipeSeed, StoreSeed
 
 CONTENT_DIR = Path(__file__).resolve().parents[1] / "content"
 
@@ -34,6 +36,8 @@ def seed_database(connection: Connection) -> None:
         _seed_ingredients(session)
         _seed_recipes(session)
         _seed_player_state(session)
+        _seed_player_ingredients(session)
+        _seed_store(session)
         session.commit()
 
 
@@ -84,8 +88,32 @@ def _seed_recipes(session: Session) -> None:
 
 def _seed_player_state(session: Session) -> None:
     if session.get(PlayerState, 1) is None:
-        session.add(PlayerState(id=1, reputation=0, brews_count=0))
+        session.add(PlayerState(id=1, money=100, brews_count=0))
         session.flush()
+
+
+def _seed_player_ingredients(session: Session) -> None:
+    """Give the player 20 of each ingredient. Idempotent — skips existing slugs."""
+    ingredients = session.scalars(select(Ingredient)).all()
+    existing = {pi.ingredient_slug for pi in session.scalars(select(PlayerIngredient)).all()}
+    for ing in ingredients:
+        if ing.slug not in existing:
+            session.add(PlayerIngredient(ingredient_slug=ing.slug, quantity=20))
+    session.flush()
+
+
+def _seed_store(session: Session) -> None:
+    """Upsert ingredient store prices and stock from content/store.json."""
+    rows = [StoreSeed.model_validate(r) for r in _load_json("store.json")]
+    existing = {s.ingredient_slug: s for s in session.scalars(select(IngredientStore)).all()}
+    for row in rows:
+        if row.ingredient_slug in existing:
+            entry = existing[row.ingredient_slug]
+            entry.price = row.price
+            entry.stock = row.stock
+        else:
+            session.add(IngredientStore(**row.model_dump()))
+    session.flush()
 
 
 def main() -> None:

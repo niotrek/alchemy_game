@@ -5,8 +5,8 @@ from sqlalchemy import select
 
 from apothecaria.db.models import BrewHistory, PlayerState
 from apothecaria.db.seed import seed_database
+from apothecaria.domain.economy import apply_outcome, determine_outcome
 from apothecaria.domain.models import BrewResult, CustomerInstance, Outcome
-from apothecaria.domain.reputation import apply_outcome, determine_outcome
 
 
 def _customer(category: str = "sleep", expected: str = "sleep_draught") -> CustomerInstance:
@@ -79,7 +79,7 @@ def test_apply_outcome_writes_brew_history(seeded_session):
     assert row.customer_id == "c-1"
     assert row.customer_name == "Weary Traveler"
     assert row.matched_recipe_slug == "sleep_draught"
-    assert row.reputation_delta == 10
+    assert row.money_delta == 10
 
 
 def test_apply_outcome_updates_player_state(seeded_session):
@@ -88,6 +88,6 @@ def test_apply_outcome_updates_player_state(seeded_session):
         _brew("sleep_draught", "Sleep Draught", "sleep"), customer, seeded_session
     )
     state = seeded_session.get(PlayerState, 1)
-    assert state.reputation == 10
+    assert state.money == 110
     assert state.brews_count == 1
-    assert result.new_reputation == 10
+    assert result.new_money == 110

@@ -30,7 +30,7 @@ def test_serve_returns_outcome_and_removes_customer(client, db_engine):
     assert response.status_code == 200
     body = response.json()
     assert body["outcome"] in {"delighted", "neutral", "disappointed", "confused"}
-    assert "reputation_delta" in body and "new_reputation" in body
+    assert "money_delta" in body and "new_money" in body
     next_resp = client.get("/api/customers/next")
     assert next_resp.status_code == 204
 

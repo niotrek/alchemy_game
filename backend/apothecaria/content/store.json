@@ -1,0 +1,8 @@
+[
+  {"ingredient_slug": "moonpetal",   "price": 5, "stock": 50},
+  {"ingredient_slug": "mushroom",    "price": 3, "stock": 80},
+  {"ingredient_slug": "root",        "price": 4, "stock": 60},
+  {"ingredient_slug": "feather",     "price": 6, "stock": 40},
+  {"ingredient_slug": "eye-of-newt", "price": 8, "stock": 30},
+  {"ingredient_slug": "sage",        "price": 4, "stock": 70}
+]

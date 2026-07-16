@@ -38,12 +38,12 @@ def test_recipe_with_ingredients(db_session):
 
 
 def test_player_state_singleton(db_session):
-    state = PlayerState(id=1, reputation=0, brews_count=0)
+    state = PlayerState(id=1, money=100, brews_count=0)
     db_session.add(state)
     db_session.flush()
     fetched = db_session.get(PlayerState, 1)
     assert fetched is not None
-    assert fetched.reputation == 0
+    assert fetched.money == 100
 
 
 def test_brew_history_records_customer_snapshot(db_session):
@@ -56,7 +56,7 @@ def test_brew_history_records_customer_snapshot(db_session):
         customer_ailment_category="sleep",
         expected_recipe_slug="sleep_draught",
         outcome="delighted",
-        reputation_delta=10,
+        money_delta=10,
     )
     db_session.add(h)
     db_session.flush()

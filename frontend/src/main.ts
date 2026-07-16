@@ -30,14 +30,18 @@ void boot();
 
 async function boot(): Promise<void> {
   try {
-    const [inventory, recipes] = await Promise.all([
+    const [inventory, recipes, quantities, playerMoney] = await Promise.all([
       client.getInventory(),
       client.getRecipes(),
+      client.getQuantities(),
+      client.getMoney(),
     ]);
     const shelf = createShelf(scene.shelfContainer, inventory);
     shelfJars = shelf.jars;
     grimoirePanel.setRecipes(recipes);
     brewResult.setRecipes(recipes);
+    session.setQuantities(quantities);
+    session.setMoney(playerMoney.money);
 
     inventory.forEach((i) => {
       ingredientColors.set(i.slug, defaultLiquidColorFor(i.slug));
@@ -125,6 +129,7 @@ function wireOverlays(): void {
     try {
       const r = await client.brew(slugs);
       brewResult.showBrew(r);
+      client.getQuantities().then((q) => session.setQuantities(q));
     } catch (err) {
       showToast(errorText(err), "error");
     }
@@ -148,12 +153,13 @@ function wireOverlays(): void {
     try {
       const r = await client.serve(c.id, slugs);
       brewResult.showServe(r);
-      session.setReputation(r.new_reputation);
+      session.setMoney(r.new_money);
       session.setCurrentCustomer(null);
-      session.clearCauldron();
+      session.clearCauldronAfterBrew();
       cauldron.resetColor();
       customerDialog.hide();
       door.hideCustomer();
+      client.getQuantities().then((q) => session.setQuantities(q));
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         showToast("That customer has left the shop");

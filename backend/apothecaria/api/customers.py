@@ -9,8 +9,8 @@ from apothecaria.domain.customer_queue import (
     make_customer,
     pick_next_template,
 )
+from apothecaria.domain.economy import apply_outcome
 from apothecaria.domain.models import CustomerInstance
-from apothecaria.domain.reputation import apply_outcome
 
 router = APIRouter()
 
@@ -31,8 +31,8 @@ class ServeBody(BaseModel):
 
 class ServeOut(BaseModel):
     outcome: str
-    reputation_delta: int
-    new_reputation: int
+    money_delta: int
+    new_money: int
     customer_response: str
 
 
@@ -87,7 +87,7 @@ def serve(
 
     return ServeOut(
         outcome=result.outcome.value,
-        reputation_delta=result.reputation_delta,
-        new_reputation=result.new_reputation,
+        money_delta=result.money_delta,
+        new_money=result.new_money,
         customer_response=result.customer_response,
     )

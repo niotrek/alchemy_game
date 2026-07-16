@@ -35,8 +35,8 @@ export type BrewResult = {
 
 export type ServeResult = {
   outcome: "delighted" | "neutral" | "disappointed" | "confused";
-  reputation_delta: number;
-  new_reputation: number;
+  money_delta: number;
+  new_money: number;
   customer_response: string;
 };
 
@@ -61,6 +61,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const client = {
   getInventory: () => request<Ingredient[]>("/api/inventory"),
+  getQuantities: () => request<Record<string, number>>("/api/inventory/quantities"),
+  getMoney: () => request<{ money: number }>("/api/player/money"),
   getRecipes: () => request<Recipe[]>("/api/recipes"),
   getNextCustomer: () => request<Customer | null>("/api/customers/next"),
   spawnCustomer: () =>
