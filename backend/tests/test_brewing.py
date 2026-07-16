@@ -60,3 +60,11 @@ def test_fog_veil_exact_match(seeded_session):
     assert result.matched_recipe_name == "Fog Veil"
     assert result.matched_ailment_category == "confusion"
     assert result.quality_score == 1.0
+
+
+def test_iron_resolve_exact_match(seeded_session):
+    result = combine_ingredients(["sage", "eye-of-newt", "root"], seeded_session)
+    assert result.matched_recipe_slug == "iron_resolve"
+    assert result.matched_recipe_name == "Iron Resolve"
+    assert result.matched_ailment_category == "confusion"
+    assert result.quality_score == 1.0
